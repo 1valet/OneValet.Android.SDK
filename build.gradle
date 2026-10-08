@@ -1,0 +1,29 @@
+// Root build file for the OneValetSDK Android samples.
+//
+// This is a standalone project that consumes the OneValetSDK fat `.aar` from
+// demo/libs — exactly as a third-party integrator would. It intentionally does
+// NOT contain the SDK source. See README "Running it" for how to produce the
+// .aar, which is not committed.
+
+plugins {
+    id 'com.android.application' version '8.12.2' apply false
+    id 'org.jetbrains.kotlin.android' version '2.2.10' apply false
+    id 'org.jetbrains.kotlin.plugin.compose' version '2.2.10' apply false
+    // The sample's networking layer (kotlinx.serialization).
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.10' apply false
+}
+
+ext {
+    compile_sdk_version = 36
+    min_sdk_version = 29
+    target_sdk_version = 35
+
+    core_version = "1.16.0"
+    appcompat_version = "1.7.1"
+    activity_compose_version = "1.10.1"
+    lifecycle_version = "2.9.3"
+    coroutines_version = "1.8.1"
+    compose_bom_version = "2025.08.01"
+    desugar_jdk_libs_version = "1.1.5"
+    kotlinx_serialization_version = "1.8.0"
+}

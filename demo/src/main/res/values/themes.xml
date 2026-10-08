@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose renders the UI; this base only needs to be a valid no-action-bar
+         theme. AppCompat provides it without pulling in the Material Components
+         XML library. -->
+    <style name="Theme.OneValetSdkDemo" parent="Theme.AppCompat.DayNight.NoActionBar" />
+</resources>
