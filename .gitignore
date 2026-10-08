@@ -1,0 +1,25 @@
+*.iml
+.gradle
+.kotlin/
+local.properties
+.idea/
+.DS_Store
+build/
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.aab
+
+# Signing material never belongs in a public samples repo.
+*.jks
+*.keystore
+keystore.properties
+
+# Local Firebase config, if you wire up Firebase for your own testing — keeps
+# your Firebase project from being published to integrators.
+google-services.json
+
+# The SDK's fat .aar is a ~32 MiB build output, not source. Build it from the
+# OneValetSDK.Android project and drop it here; see "Running it" in README.md.
+demo/libs/*.aar
