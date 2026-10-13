@@ -1,0 +1,130 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.onevalet",
+    "module": "onevaletsdk",
+    "version": "0.0.3",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.13"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseVariantReleaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.10"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "onevaletsdk-0.0.3.aar",
+          "url": "onevaletsdk-0.0.3.aar",
+          "size": 34511,
+          "sha512": "7f290a92569d36f1ecd1975bf997672ec4eb5dd665a2507724793434338be5aa066b169d037fb1da81ce376ca8caccccbd15503733b77a4d8cb27a2d7ff398a4",
+          "sha256": "8fc8c567e6b6b22f166825ef81c51f88fe5f554ad969aec3e6890127cbf603a8",
+          "sha1": "937108aa1b5e05577d2ad6f5505565ad21e17bdc",
+          "md5": "dfb28bf2a944da28d2e099ead8fa02b2"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.twilio",
+          "module": "video-android-ktx",
+          "version": {
+            "requires": "7.9.1"
+          }
+        },
+        {
+          "group": "com.twilio",
+          "module": "video-audio-processors",
+          "version": {
+            "requires": "7.9.1"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-android",
+          "version": {
+            "requires": "1.8.1"
+          }
+        },
+        {
+          "group": "androidx.core",
+          "module": "core-ktx",
+          "version": {
+            "requires": "1.16.0"
+          }
+        },
+        {
+          "group": "androidx.appcompat",
+          "module": "appcompat",
+          "version": {
+            "requires": "1.7.1"
+          }
+        },
+        {
+          "group": "androidx.compose",
+          "module": "compose-bom",
+          "version": {
+            "requires": "2025.08.01"
+          },
+          "attributes": {
+            "org.gradle.category": "platform"
+          },
+          "endorseStrictVersions": true
+        },
+        {
+          "group": "androidx.compose.ui",
+          "module": "ui"
+        },
+        {
+          "group": "androidx.compose.foundation",
+          "module": "foundation"
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.10"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "onevaletsdk-0.0.3.aar",
+          "url": "onevaletsdk-0.0.3.aar",
+          "size": 34511,
+          "sha512": "7f290a92569d36f1ecd1975bf997672ec4eb5dd665a2507724793434338be5aa066b169d037fb1da81ce376ca8caccccbd15503733b77a4d8cb27a2d7ff398a4",
+          "sha256": "8fc8c567e6b6b22f166825ef81c51f88fe5f554ad969aec3e6890127cbf603a8",
+          "sha1": "937108aa1b5e05577d2ad6f5505565ad21e17bdc",
+          "md5": "dfb28bf2a944da28d2e099ead8fa02b2"
+        }
+      ]
+    }
+  ]
+}
