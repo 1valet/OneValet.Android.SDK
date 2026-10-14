@@ -6,68 +6,6 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization'
 }
 
-// ---------------------------------------------------------------------------
-// The SDK .aar
-// ---------------------------------------------------------------------------
-// The demo depends on demo/libs/onevaletsdk-fat.aar, which is deliberately NOT
-// committed (~32 MiB build output). `updateSdkAar` below builds it from the
-// sibling OneValetSDK.Android project and copies it in, so a fresh clone is one
-// command away from running:
-//
-//     ./gradlew :demo:updateSdkAar
-//
-// Without this, a missing .aar surfaces as an opaque
-// "Failed to transform onevaletsdk-fat.aar" from an AGP artifact transform,
-// which says nothing about what to do. Fail early and say it instead.
-
-def sdkAarFile = file('libs/onevaletsdk-fat.aar')
-
-// Point this at your SDK checkout if it does not sit beside this project.
-def oneValetSdkDir = project.hasProperty('oneValetSdkDir')
-        ? file(project.property('oneValetSdkDir'))
-        : new File(rootDir.parentFile, 'OneValetSDK.Android')
-
-tasks.register('updateSdkAar') {
-    group = 'build setup'
-    description = 'Builds the OneValetSDK fat .aar and copies it into demo/libs.'
-
-    doLast {
-        if (!new File(oneValetSdkDir, 'settings.gradle').isFile()) {
-            throw new GradleException(
-                    "No SDK project at ${oneValetSdkDir}.\n" +
-                    "Pass its location with -PoneValetSdkDir=/path/to/OneValetSDK.Android")
-        }
-
-        // ProcessBuilder rather than Gradle's exec {}: Project.exec(Closure) is
-        // removed in Gradle 9. inheritIO() streams the SDK build's own output
-        // here, so a failure over there is readable from this build.
-        // Absolute wrapper path: ProcessBuilder resolves a bare program name
-        // against PATH, not against directory(), so "gradlew.bat" is never found.
-        def wrapper = System.getProperty('os.name').toLowerCase().contains('windows')
-                ? 'gradlew.bat' : 'gradlew'
-        // -PoneValetSdkBundleTwilio=true is required: without it the SDK builds as a
-        // Maven library (Twilio declared, not bundled) and the fat-.aar assembly
-        // fails on an empty com.twilio.video.R shim jar. The demo consumes a local
-        // file, which carries no POM, so for it Twilio has to be inside the archive.
-        def proc = new ProcessBuilder([new File(oneValetSdkDir, wrapper).absolutePath, ':onevaletsdk:fatAar', '-PoneValetSdkBundleTwilio=true'])
-                .directory(oneValetSdkDir)
-                .inheritIO()
-                .start()
-        def exit = proc.waitFor()
-        if (exit != 0) {
-            throw new GradleException(
-                    "':onevaletsdk:fatAar' failed (exit ${exit}) in ${oneValetSdkDir}.")
-        }
-
-        def built = new File(oneValetSdkDir, 'onevaletsdk/build/outputs/fat-aar/onevaletsdk-fat.aar')
-        if (!built.isFile()) {
-            throw new GradleException("fatAar reported success but ${built} is missing.")
-        }
-        copy { from built; into sdkAarFile.parentFile }
-        logger.lifecycle("Updated ${sdkAarFile.name} (${built.length().intdiv(1048576)} MiB)")
-    }
-}
-
 android {
     namespace 'com.onevalet.onevaletsdk.demo'
     compileSdk compile_sdk_version
@@ -108,16 +46,8 @@ android {
 dependencies {
     // HOW AN INTEGRATOR ADDS THE SDK — one coordinate, resolved from the 1VALET
     // Maven repo declared in settings.gradle. Everything the SDK needs, video
-    // engine included, comes with it via the published POM. Switch to this once
-    // the version you want has been released:
-    //
-    //     implementation "com.onevalet:onevaletsdk:1.2.0"
-    //
-    // LOCAL DEVELOPMENT (active) — consumes the fat .aar built from the sibling
-    // OneValetSDK.Android source by `./gradlew :demo:updateSdkAar`, so the sample
-    // can be run against unreleased SDK changes. Requires that private source, so
-    // it is not a path an integrator can follow.
-    implementation files('libs/onevaletsdk-fat.aar')
+    // engine included, comes with it via the published POM.
+    implementation "com.onevalet:onevaletsdk:0.0.3"
 
     implementation "androidx.core:core-ktx:$core_version"
     implementation "androidx.appcompat:appcompat:$appcompat_version"
@@ -140,27 +70,4 @@ dependencies {
     implementation 'androidx.compose.material:material-icons-core'
 
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$desugar_jdk_libs_version"
-}
-
-// Deliberately last in the file: this aborts project evaluation, and doing so
-// before the android {} block above is configured makes AGP report a spurious
-// "does not specify compileSdk" alongside it, burying the real message.
-// Guard, skipped when the fix task is what was asked for (and with
-// -PskipSdkAarCheck for anything unforeseen).
-if (!sdkAarFile.isFile()
-        && !gradle.startParameter.taskNames.any { it.contains('updateSdkAar') }
-        && !project.hasProperty('skipSdkAarCheck')) {
-    throw new GradleException(
-            "\n" +
-            "Missing ${sdkAarFile.name} - the OneValetSDK .aar is a build output and\n" +
-            "is not committed to git.\n" +
-            "\n" +
-            "Build and install it with:\n" +
-            "\n" +
-            "    ./gradlew :demo:updateSdkAar\n" +
-            "\n" +
-            "That runs :onevaletsdk:fatAar in " + oneValetSdkDir.name + " and copies the\n" +
-            "result into demo/libs/. Re-run it whenever the SDK source changes - a stale\n" +
-            ".aar is not detected. If your SDK checkout is elsewhere, add\n" +
-            "-PoneValetSdkDir=/path/to/OneValetSDK.Android\n")
 }

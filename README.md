@@ -1,14 +1,16 @@
 # OneValetSDK for Android
 
 Two-way audio/video **Calls** for the 1VALET platform, as a reusable Android
-library built with Kotlin coroutines and `StateFlow`, distributed as a single
-`.aar`. This repository is the **integration reference**: the API
-documentation below plus a complete, runnable [sample app](#sample-app).
+library built with Kotlin coroutines and `StateFlow`, distributed as a Maven
+library (`com.onevalet:onevaletsdk`). This repository is the **integration
+reference**: the API documentation below plus a complete, runnable
+[sample app](#sample-app).
 
 The underlying video engine is wrapped internally and **never appears on the
 public API** — callers only ever hold the SDK's own types (`CallManager`,
-`CallVideoTrack`, `CallVideoView`). The engine is bundled inside the distributed
-`.aar`, so you never declare it yourself — see [Installation](#installation).
+`CallVideoTrack`, `CallVideoView`). The engine is declared in the SDK's POM and
+resolved for you, so you never declare it yourself — see
+[Installation](#installation).
 
 - [Requirements](#requirements)
 - [Installation](#installation)
@@ -31,7 +33,7 @@ public API** — callers only ever hold the SDK's own types (`CallManager`,
 | compileSdk | 36 |
 | JDK | 17 |
 | Kotlin | 2.2.x |
-| Dependencies | Video engine bundled; the rest you declare — see [Installation](#installation) |
+| Dependencies | All resolved from the SDK's POM — see [Installation](#installation) |
 
 The SDK enables **core library desugaring**, so the consuming app must enable it
 too:
@@ -63,13 +65,13 @@ Add the 1VALET Maven repository, then declare one dependency:
 ```groovy
 // settings.gradle — inside dependencyResolutionManagement { repositories { … } }
 mavenCentral()
-maven { url "https://raw.githubusercontent.com/1valet/OneValetSDK-Android/maven" }
+maven { url "https://raw.githubusercontent.com/1valet/OneValet.Android.SDK/maven" }
 ```
 
 ```groovy
 // app/build.gradle
 dependencies {
-    implementation "com.onevalet:onevaletsdk:1.2.0"
+    implementation "com.onevalet:onevaletsdk:0.0.3"
 }
 ```
 
@@ -117,7 +119,10 @@ exposes the remote video track for rendering.
 
 ```kotlin
 // 1. Construct and own the lifecycle (or use CallManager.shared(context)).
-val calls = CallManager(context)
+val calls = CallManager(context).apply {
+    // Optional: route diagnostics to your crash/analytics logging.
+    diagnosticsListener = { message -> Log.i("Calls", message) }
+}
 
 // 2. Join a room. The access token comes from YOUR backend.
 lifecycleScope.launch {
@@ -202,7 +207,12 @@ The SDK is the **media engine only**. Your app owns everything around it:
 
 ## API reference
 
-### `CallManager(context)` — `Closeable`
+### `CallManager(context, noiseCancellation = false)` — `Closeable`
+
+| Parameter | Meaning |
+|---|---|
+| `context` | Any `Context`; the SDK keeps only the application context. |
+| `noiseCancellation` | Routes call audio through the video engine's noise-cancellation (Krisp) audio device. **Off by default:** on some phones it never starts the microphone, so the far end hears nothing. Turn it on only for hardware you have verified it on (for example, fixed tablets with an echo problem). |
 
 **State (`StateFlow`)**
 
@@ -214,7 +224,13 @@ The SDK is the **media engine only**. Your app owns everything around it:
 | `isRemoteCameraAvailable` | `Boolean` | Whether the remote party is publishing video. |
 | `isLocalCameraAvailable` | `Boolean` | Whether the local camera is capturing. |
 | `isUsingFrontCamera` | `Boolean` | Bind a local `CallVideoView`'s `mirror` to this. |
-| `isMuted` | `Boolean` | Whether the local mic is muted. |
+| `isMuted` | `Boolean` | Whether the local mic is muted. Muting **before** `joinRoom` holds through connect — the mic stays off when the call goes `ACTIVE` until you `unmuteMicrophone()`. Use this to keep a ringing call silent until it is answered. |
+
+**Properties**
+
+| Property | Type | Meaning |
+|---|---|---|
+| `diagnosticsListener` | `((String) -> Unit)?` | Optional. Receives human-readable diagnostics on the main thread — connect failures, reconnects, local audio/video publication results, remote video switched off/on. Route it to your logging; it is what makes "the other side can't hear me" reports diagnosable. |
 
 **Functions**
 
@@ -227,11 +243,11 @@ The SDK is the **media engine only**. Your app owns everything around it:
 | `activateCamera()` / `initiateLocalVideo(): Boolean` | Create, then publish, the local camera track. |
 | `deactivateCamera()` / `flipCamera()` | Stop / switch (front↔back) the local camera. |
 | `enableAudioDevice()` / `disableAudioDevice()` | Route / restore call audio (e.g. around a Telecom `ConnectionService` audio session). |
-| `setRemoteAudioPlaybackEnabled(enabled)` | Gate remote audio playback (set `false` before connecting to hold until answered). |
+| `setRemoteAudioPlaybackEnabled(enabled)` | Gate remote audio playback (set `false` before connecting to hold until answered; pair with `muteMicrophone()`). |
 | `isLocalAudioEnabled()` / `isLocalVideoEnabled(): Boolean` | Current enabled state of the local tracks. |
 | `sendData(message)` | Send a string to other participants over the data channel. |
 | `release()` / `close()` | Tear down the call and free resources. You own this. |
-| `CallManager.shared(context)` | Process-wide convenience instance. |
+| `CallManager.shared(context)` | Process-wide convenience instance, with default options. |
 
 ### `CallState`
 
@@ -264,7 +280,7 @@ An opaque handle to a video track. You never construct it — collect it from
 
 | Member | Description |
 |---|---|
-| `OneValetSdk.VERSION` | The SDK version of this build, e.g. `"1.2.0"`. |
+| `OneValetSdk.VERSION` | The SDK version of this build, e.g. `"0.0.3"`. |
 
 Quote `OneValetSdk.VERSION` in bug reports. It is compiled into the artifact, so
 it reports the build you are actually running even when the resolved version is
@@ -314,12 +330,9 @@ The [`demo`](demo) module is a complete, runnable integration built on the SDK �
 the app-side plumbing you would otherwise write yourself: the API client, the
 incoming-call push handling, and the in-call UI.
 
-Its SDK dependency is currently wired for **1VALET-internal development** (a
-local `.aar` built from the sibling source), because no version has been
-published yet. To build it the way you will build your own app, swap that line
-for the commented coordinate in [`demo/build.gradle`](demo/build.gradle) — the
-repository it resolves from is already declared in
-[`settings.gradle`](settings.gradle).
+It consumes the SDK exactly the way your app will: one coordinate in
+[`demo/build.gradle`](demo/build.gradle), resolved from the 1VALET Maven
+repository declared in [`settings.gradle`](settings.gradle).
 
 The demo pairs with the **1VALET Developer Portal**: it displays a short code,
 you enter it on the portal's Demo app page (Mobile SDK → Demo app) and pick the resident it rings
@@ -353,40 +366,28 @@ the transport differs.
 
 **Running it**
 
-> **Integrating, rather than working on the SDK?** Skip step 1. In
-> `demo/build.gradle`, swap the local `.aar` line for the commented
-> `implementation "com.onevalet:onevaletsdk:<version>"` above it — the repository
-> it resolves from is already declared in `settings.gradle`. That is the supported
-> path and needs no access to the SDK source.
->
-> Step 1 is for 1VALET developers running the sample against unreleased SDK
-> changes. It builds the bundled variant, because a local `.aar` carries no POM
-> and so cannot pull the video engine in on its own.
-
-1. **Install the SDK `.aar`.** The demo depends on
-   `demo/libs/onevaletsdk-fat.aar`, which is deliberately **not** committed — it
-   is a ~32 MiB build output, not source. One command builds it from the sibling
-   `OneValetSDK.Android` project and copies it in:
-   ```bash
-   ./gradlew :demo:updateSdkAar
-   ```
-   Forget this on a fresh clone and the build stops with a message telling you to
-   run exactly that, so there is nothing to memorise.
-
-   **Re-run it whenever the SDK source changes.** Nothing detects a stale `.aar`
-   — the demo will happily build against yesterday's SDK.
-
-   If your SDK checkout is not beside this project, point at it:
-   ```bash
-   ./gradlew :demo:updateSdkAar -PoneValetSdkDir=/path/to/OneValetSDK.Android
-   ```
-2. Set the Developer Portal URL in
+1. Set the Developer Portal URL in
    [`ApiConfig`](demo/src/main/java/com/onevalet/onevaletsdk/demo/network/ApiConfig.kt)
    if you are not using the default.
-3. Build/run, then pair the app from the portal's Demo app page:
+2. Build/run, then pair the app from the portal's Demo app page:
    ```bash
    ./gradlew :demo:assembleDebug
    ```
+
+> **1VALET developers — running the demo against unreleased SDK changes:** point
+> it at your local SDK checkout with a composite build. Add this to the top of
+> `settings.gradle` (adjust the path), and **do not commit it**:
+>
+> ```groovy
+> includeBuild('../OneValet.MobileAppSDK.Android') {
+>     dependencySubstitution {
+>         substitute module('com.onevalet:onevaletsdk') using project(':onevaletsdk')
+>     }
+> }
+> ```
+>
+> Gradle then builds the SDK from source in place of the published coordinate,
+> and picks up SDK changes on every build.
 
 ---
 

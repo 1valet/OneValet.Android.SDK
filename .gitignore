@@ -20,6 +20,6 @@ keystore.properties
 # your Firebase project from being published to integrators.
 google-services.json
 
-# The SDK's fat .aar is a ~32 MiB build output, not source. Build it from the
-# OneValetSDK.Android project and drop it here; see "Running it" in README.md.
+# Never commit a local SDK .aar. The demo resolves the SDK from Maven; an old
+# fat .aar bundles Twilio's binaries, which must not be redistributed.
 demo/libs/*.aar
