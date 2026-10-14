@@ -14,7 +14,7 @@ dependencyResolutionManagement {
         // Where `com.onevalet:onevaletsdk` resolves from — a plain directory-layout
         // Maven repo over anonymous HTTPS, no credentials. This is the line an
         // integrator adds; see README "Installation".
-        maven { url "https://raw.githubusercontent.com/1valet/OneValetSDK-Android/maven" }
+        maven { url "https://raw.githubusercontent.com/1valet/OneValet.Android.SDK/maven" }
     }
 }
 
