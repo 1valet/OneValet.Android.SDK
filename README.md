@@ -388,10 +388,3 @@ the transport differs.
 >
 > Gradle then builds the SDK from source in place of the published coordinate,
 > and picks up SDK changes on every build.
-
----
-
-## Support
-
-Questions or integration help: **developer support @ 1VALET** (add your real
-support channel / SLA here before publishing).
